@@ -4,7 +4,9 @@ import numpy as np
 import os
 import glob
 import skimage.io as io
+import skimage.color as color
 import skimage.transform as trans
+import random
 
 Sky = [128,128,128]
 Building = [128,0,0]
@@ -24,25 +26,12 @@ COLOR_DICT = np.array([Sky, Building, Pole, Road, Pavement,
 
 
 def adjustData(img,mask,flag_multi_class,num_class):
-    if(flag_multi_class):
-        img = img / 255
-        mask = mask[:,:,:,0] if(len(mask.shape) == 4) else mask[:,:,0]
-        new_mask = np.zeros(mask.shape + (num_class,))
-        for i in range(num_class):
-            #for one pixel in the image, find the class in mask and convert it into one-hot vector
-            #index = np.where(mask == i)
-            #index_mask = (index[0],index[1],index[2],np.zeros(len(index[0]),dtype = np.int64) + i) if (len(mask.shape) == 4) else (index[0],index[1],np.zeros(len(index[0]),dtype = np.int64) + i)
-            #new_mask[index_mask] = 1
-            new_mask[mask == i,i] = 1
-        new_mask = np.reshape(new_mask,(new_mask.shape[0],new_mask.shape[1]*new_mask.shape[2],new_mask.shape[3])) if flag_multi_class else np.reshape(new_mask,(new_mask.shape[0]*new_mask.shape[1],new_mask.shape[2]))
-        mask = new_mask
-    elif(np.max(img) > 1):
+    if(np.max(img) > 1):
         img = img / 255
         mask = mask /255
         mask[mask > 0.5] = 1
         mask[mask <= 0.5] = 0
     return (img,mask)
-
 
 
 def trainGenerator(batch_size,train_path,image_folder,mask_folder,aug_dict,image_color_mode = "rgb",
@@ -118,8 +107,6 @@ def valGenerator(batch_size,val_path,image_folder,mask_folder,image_color_mode =
         yield (img,mask)
 
 
-
-
 def testGenerator(test_path, target_size = (512,512),flag_multi_class = False):
     num_image = len(glob.glob(os.path.join(test_path, 'image', '*')))
     for i in range(num_image):
@@ -132,6 +119,20 @@ def testGenerator(test_path, target_size = (512,512),flag_multi_class = False):
         img = np.reshape(img, (1,) + img.shape)
         mask = np.reshape(mask, (1,) + mask.shape)
         yield (img, mask)
+
+
+def commitValGenerator(val_path, target_size = (512,512)):
+    img_frames = sorted(glob.glob(os.path.join(val_path, '*')))
+    for img_path in img_frames:
+        img_name = os.path.split(img_path)[1]
+        img_name = img_name.replace('jpg', 'png')
+        img = io.imread(img_path, as_gray = False)
+        org_size = (img.shape[0], img.shape[1])
+        img = img / 255
+        img = trans.resize(img,target_size)
+        img = np.reshape(img, (1,) + img.shape)
+        yield (img, org_size, img_name)
+
 
 
 

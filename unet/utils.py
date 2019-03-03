@@ -1,4 +1,7 @@
-from metrics import *
+from unet.metrics import *
+import skimage.transform as trans
+from scipy import misc
+import os
 
 def get_test_res(model, testGene, num_image):
     print("Test dataset contains %d" % num_image)
@@ -20,3 +23,18 @@ def get_test_res(model, testGene, num_image):
         # io.imshow(mask_pred)
         # io.show()
     print("In test dataset, dice_coef is %.5f and jacc_coef is %.5f" % (dice_coef / num_image, jacc_coef / num_image))
+
+
+def get_val_res(model, valGene, num_image, save_path):
+    print("Validation dataset contains %d" % num_image)
+    for i in range(num_image):
+        (img, org_size, img_name) = valGene.__next__()
+        mask_pred = model.predict(img)
+        mask_pred = mask_pred.squeeze()
+        mask_pred[mask_pred >= 0.5] = 255
+        mask_pred[mask_pred < 0.5] = 0
+        mask_pred = mask_pred.astype(np.uint8)
+        mask_pred = trans.resize(mask_pred, org_size)
+        misc.imsave(os.path.join(save_path, img_name), mask_pred)
+        # io.imsave(os.path.join(save_path, img_name), mask_pred)
+

@@ -40,5 +40,12 @@ def test_jacc_coef(mask_true, mask_pred, smooth = 1):
     intersection = np.sum(mask_true_f * mask_pred_f)
     return (intersection + smooth) / (np.sum(mask_true_f) + np.sum(mask_pred_f) - intersection + smooth)
 
+<<<<<<< HEAD:unet/metrics.py
+
+
 def bce_jacc_loss(y_true, y_pred):
     return jacc_loss(y_true, y_pred) + K.mean(K.binary_crossentropy(y_true, y_pred), axis=-1)
+=======
+def bce_jacc_loss(y_true, y_pred):
+    return jacc_loss(y_true, y_pred) + K.mean(K.binary_crossentropy(y_true, y_pred), axis=-1)
+>>>>>>> 14504f661ae21de4b3d2fd0affb5f0ddae239b75:metrics.py
